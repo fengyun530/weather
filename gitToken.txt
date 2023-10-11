@@ -1,7 +1,0 @@
-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
-
-通过个人令牌访问自己的仓库
-git remote set-url origin https://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@github.com/fengyun530/weather.git
-
-拿到个人令牌token后，如果是首次 clone 工程代码，可以使用如下命令:
-git clone  https://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@github.com/fengyun530/weather.git
