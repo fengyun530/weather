@@ -5,6 +5,11 @@ import android.text.TextUtils;
 import com.example.coolweather.db.City;
 import com.example.coolweather.db.County;
 import com.example.coolweather.db.Province;
+import com.example.coolweather.db.WeatherForecast;
+import com.example.coolweather.db.WeatherIndices;
+import com.example.coolweather.db.WeatherNow;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -82,5 +87,41 @@ public class Utility {
             }
         }
         return false;
+    }
+
+    /**
+     *  将返回的json数据解析成WeatherNow实体类
+     */
+    public static WeatherNow handleWeatherNowResponse(String response){
+        try{
+            return new Gson().fromJson(response.toString(),WeatherNow.class);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     *  将返回的json数据解析成WeatherForecast实体类
+     */
+    public static WeatherForecast handleWeatherForecastResponse(String response){
+        try{
+            return new Gson().fromJson(response.toString(),WeatherForecast.class);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     *  将返回的json数据解析成WeatherNow实体类
+     */
+    public static WeatherIndices handleWeatherIndicesResponse(String response){
+        try{
+            return new Gson().fromJson(response.toString(),WeatherIndices.class);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 }
