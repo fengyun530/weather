@@ -67,13 +67,37 @@ public class WeatherActivity extends AppCompatActivity {
         indicesLayout  = (LinearLayout)findViewById(R.id.indices_layout);
 //        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 //        String weatherString = prefs.getString("weather",null);
-        String cityName  = getIntent().getStringExtra("city_name");
+
         String weatherId  = getIntent().getStringExtra("weather_id");
-        titleCity.setText(cityName);
+        String cityName  = getIntent().getStringExtra("city_name");
+        if(cityName!=null) {
+             saveDataByPreferences("cityName",cityName);
+        }
+
+        titleCity.setText(getDataByPreferences("cityName"));
         weatherLayout.setVisibility(View.INVISIBLE);
-        requestWeather(weatherId,"now");
-        requestWeather(weatherId,"forecast");
-        requestWeather(weatherId,"indices");
+        String weatherNowStr = getDataByPreferences("weatherNowJson");
+        if(weatherNowStr!=null){
+            WeatherNow weatherNow = Utility.handleWeatherNowResponse(weatherNowStr);
+            showWeatherNowInfo(weatherNow);
+        }else {
+            requestWeather(weatherId, "now");
+        }
+        String weatherForecastStr = getDataByPreferences("weatherForecastJson");
+        if(weatherForecastStr!=null){
+            WeatherForecast weatherForecast = Utility.handleWeatherForecastResponse(weatherForecastStr);
+            showWeatherFroecastInfo(weatherForecast);
+        }else {
+            requestWeather(weatherId,"forecast");
+        }
+        String weatherIndicesStr = getDataByPreferences("weatherIndicesJson");
+        if(weatherIndicesStr!=null){
+            WeatherIndices weatherIndices = Utility.handleWeatherIndicesResponse(weatherIndicesStr);
+            showWeatherIndicesInfo(weatherIndices);
+        }else {
+            requestWeather(weatherId,"indices");
+        }
+
         weatherLayout.setVisibility(View.VISIBLE);
     }
 
@@ -92,13 +116,31 @@ public class WeatherActivity extends AppCompatActivity {
                     final String responseText = response.body().string();
                     if("now".equals(type)) {
                          WeatherNow weatherNow = Utility.handleWeatherNowResponse(responseText);
-                         showWeatherNowInfo(weatherNow);
+                        String codeStr = weatherNow.getCode();
+                        if(weatherNow!=null&&"200".equals(codeStr)){
+                             saveDataByPreferences("weatherNowJson",responseText);
+                             showWeatherNowInfo(weatherNow);
+                         }else{
+                            showErrorCode(codeStr);
+                        }
                     }else if("forecast".equals(type)){
                         WeatherForecast weatherForecast = Utility.handleWeatherForecastResponse(responseText);
-                        showWeatherFroecastInfo(weatherForecast);
+                        String codeStr = weatherForecast.getCode();
+                        if(weatherForecast!=null&&"200".equals(codeStr)){
+                            saveDataByPreferences("weatherForecastJson",responseText);
+                            showWeatherFroecastInfo(weatherForecast);
+                        }else{
+                            showErrorCode(codeStr);
+                        }
                     }else if("indices".equals(type)){
                         WeatherIndices weatherIndices = Utility.handleWeatherIndicesResponse(responseText);
-                        showWeatherIndicesInfo(weatherIndices);
+                        String codeStr = weatherIndices.getCode();
+                        if(weatherIndices!=null&&"200".equals(codeStr)){
+                            saveDataByPreferences("weatherIndicesJson",responseText);
+                            showWeatherIndicesInfo(weatherIndices);
+                        }else{
+                            showErrorCode(codeStr);
+                        }
                     }
                 }
 
@@ -139,7 +181,7 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if(weatherForecast!=null&&"200".equals(weatherForecast.getCode())){
-                    //forecastLayout.removeAllViews();
+                     forecastLayout.removeAllViews();
                     for(WeatherForecast.DailyEntity forecast:weatherForecast.getDaily()){
                         View view =LayoutInflater.from(WeatherActivity.this).inflate(R.layout.forecast_item,forecastLayout,false);
                         TextView dateText =  (TextView) view.findViewById(R.id.date_text);
@@ -174,5 +216,25 @@ public class WeatherActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void showErrorCode(final String codeStr){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(WeatherActivity.this,"获取天气失败:错误状态码:"+codeStr,Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void saveDataByPreferences(String keyName , String data){
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
+        editor.putString(keyName,data);
+        editor.apply();
+    }
+
+    private String getDataByPreferences(String keyName){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        return prefs.getString(keyName,null);
     }
 }
